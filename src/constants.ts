@@ -19,3 +19,5 @@ export const RIPPLE_AMPLITUDE = 75; // px — wild, throw characters far
 export const RIPPLE_WAVELENGTH = 360; // px — gaussian envelope width
 export const RIPPLE_RING_SPACING = 90; // px — gap between oscillating rings
 export const RIPPLE_MAX_AGE = 3500; // ms
+
+export const RIPPLE_REFLECT_STRENGTH = 0.4; // reflected waves are 40% as strong

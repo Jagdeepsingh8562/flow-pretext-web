@@ -2,8 +2,8 @@ import { useRef, useEffect, useState } from 'react'
 import { usePretext } from '../hooks/usePretext'
 import { useFluidSim } from '../hooks/useFluidSim'
 import { ambientOffset } from '../simulation/ambient'
-import { rippleOffset, isWaveExpired } from '../simulation/ripple'
-import { BG_COLOR, FONT, TEXT_COLOR } from '../constants'
+import { rippleOffset, getMirrorWaves, isWaveExpired } from '../simulation/ripple'
+import { BG_COLOR, FONT, TEXT_COLOR, RIPPLE_REFLECT_STRENGTH } from '../constants'
 
 export function FluidCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -67,6 +67,13 @@ export function FluidCanvas() {
           const r = rippleOffset(char, wave, now)
           dx += r.dx
           dy += r.dy
+
+          // Mirror waves — reflect off all 4 borders and 4 corners
+          for (const mirror of getMirrorWaves(wave, canvas.width, canvas.height)) {
+            const rm = rippleOffset(char, mirror, now)
+            dx += rm.dx * RIPPLE_REFLECT_STRENGTH
+            dy += rm.dy * RIPPLE_REFLECT_STRENGTH
+          }
         }
 
         ctx.fillText(char.char, char.baseX + dx, char.baseY + dy)

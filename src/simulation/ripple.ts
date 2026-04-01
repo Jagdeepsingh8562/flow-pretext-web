@@ -52,6 +52,30 @@ export function rippleOffset(char: Char, wave: Wave, now: number): RippleOffset 
   }
 }
 
+/**
+ * Image source method: reflect a wave over all 4 borders and 4 corners,
+ * returning 8 virtual mirror waves. The render loop applies these at reduced
+ * amplitude — producing smaller waves that appear to bounce back from the edges.
+ *
+ * Physics: a mirror wave at position (-wx, wy) reaches x=0 at the exact same
+ * moment the real wave does, so the reflection timing is naturally correct.
+ */
+export function getMirrorWaves(wave: Wave, canvasW: number, canvasH: number): Wave[] {
+  const { x, y, birthTime } = wave
+  return [
+    // Edge reflections
+    { x: -x,              y,               birthTime }, // left
+    { x: 2 * canvasW - x, y,               birthTime }, // right
+    { x,                  y: -y,            birthTime }, // top
+    { x,                  y: 2 * canvasH - y, birthTime }, // bottom
+    // Corner reflections
+    { x: -x,              y: -y,            birthTime }, // top-left
+    { x: 2 * canvasW - x, y: -y,            birthTime }, // top-right
+    { x: -x,              y: 2 * canvasH - y, birthTime }, // bottom-left
+    { x: 2 * canvasW - x, y: 2 * canvasH - y, birthTime }, // bottom-right
+  ]
+}
+
 export function isWaveExpired(wave: Wave, now: number): boolean {
   return now - wave.birthTime > RIPPLE_MAX_AGE
 }
