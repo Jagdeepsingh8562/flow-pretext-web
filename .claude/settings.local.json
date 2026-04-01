@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(sed -i '' 's/export const LINE_HEIGHT = 20;/export const LINE_HEIGHT = 26;/' \"/Users/jagdeepsingh/Desktop/dev work/raintext-app/src/constants.ts\")",
+      "Bash(sed -i '' 's/export const PADDING = 48; \\\\/\\\\/ top\\\\/left\\\\/right padding in px/export const PADDING = 96; \\\\/\\\\/ generous top\\\\/side padding for artistic breathing room/' \"/Users/jagdeepsingh/Desktop/dev work/raintext-app/src/constants.ts\")"
     ]
   }
 }

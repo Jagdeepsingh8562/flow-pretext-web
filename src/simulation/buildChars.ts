@@ -26,13 +26,14 @@ export function buildChars(
     const line = result.lines[li]
     const lineY = PADDING + li * LINE_HEIGHT
 
-    let x = PADDING
+    // Center each line using pretext's pre-computed width — no re-measuring needed
+    const startX = Math.round((canvasWidth - line.width) / 2)
+
+    let x = startX
     for (const { segment } of segmenter.segment(line.text)) {
       if (segment.trim()) {
         chars.push({ char: segment, baseX: x, baseY: lineY })
       }
-      // ctx.measureText per grapheme is the intended pattern —
-      // pretext exposes per-segment widths but not per-grapheme for English words
       x += ctx.measureText(segment).width
     }
   }
