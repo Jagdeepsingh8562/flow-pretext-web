@@ -4,26 +4,32 @@ import { DEFAULT_TEXT, FONT } from '../constants'
 import { buildChars } from '../simulation/buildChars'
 import type { Char } from '../simulation/types'
 
+export interface PretextResult {
+  chars: Char[]
+  totalHeight: number
+}
+
 export function usePretext(
-  size: { width: number; height: number },
+  width: number,
   ctx: CanvasRenderingContext2D | null
-): Char[] {
-  const [chars, setChars] = useState<Char[]>([])
+): PretextResult {
+  const [result, setResult] = useState<PretextResult>({ chars: [], totalHeight: 0 })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const preparedRef = useRef<any>(null)
 
   useEffect(() => {
-    if (!ctx || size.width === 0 || size.height === 0) return
+    if (!ctx || width === 0) return
 
     const run = async () => {
       if (!preparedRef.current) {
         preparedRef.current = await prepareWithSegments(DEFAULT_TEXT, FONT)
       }
-      setChars(buildChars(preparedRef.current, size.width, size.height, ctx))
+      const built = buildChars(preparedRef.current, width, ctx)
+      setResult(built)
     }
 
     run()
-  }, [ctx, size.width, size.height])
+  }, [ctx, width])
 
-  return chars
+  return result
 }

@@ -1,17 +1,20 @@
-export const DEFAULT_TEXT = `The river runs through the middle of my body.
-Energy is a moving river moving my moving body.
-A river is a body of water. It has a foot, an elbow, a mouth.`
+import rawText from '../sample.txt?raw'
 
-export const FONT = '72px "SF Mono", "Courier New", monospace'
-export const LINE_HEIGHT = 90
+// Strip metadata header (title, author, contributor bios, date) and copyright footer
+const lines = rawText.split('\n')
+export const DEFAULT_TEXT = lines.slice(7, -3).join('\n').trim()
+
+export const FONT = '14px "SF Mono", "Courier New", monospace'
+export const LINE_HEIGHT = 20
 export const TEXT_COLOR = '#ffffff'
 export const BG_COLOR = '#000000'
+export const PADDING = 48 // top/left/right padding in px
 
 export const AMBIENT_FREQ = 0.015
-export const AMBIENT_SPEED = 0.002
-export const AMBIENT_AMP = 6
+export const AMBIENT_SPEED = 0.004    // faster idle sway
+export const AMBIENT_AMP = 4          // slightly more visible
 
-export const WAVE_SPEED = 0.008
-export const WAVE_STRENGTH = 40
-export const WAVE_DECAY = 0.01
-export const WAVE_MAX_AGE = 1500 // ms
+export const RIPPLE_SPEED = 0.8       // px/ms — faster ring expansion
+export const RIPPLE_AMPLITUDE = 22    // px — bigger push
+export const RIPPLE_WAVELENGTH = 320  // px — wider pulse ring
+export const RIPPLE_MAX_AGE = 3500    // ms — long enough to cross screen

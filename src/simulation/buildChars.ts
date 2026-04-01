@@ -1,38 +1,43 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { layoutWithLines } from '@chenglou/pretext'
-import { FONT, LINE_HEIGHT } from '../constants'
+import { FONT, LINE_HEIGHT, PADDING } from '../constants'
 import type { Char } from './types'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface BuildResult {
+  chars: Char[]
+  totalHeight: number
+}
+
+// Reused across calls — Intl.Segmenter splits by grapheme cluster (correct for emoji, accents, etc.)
+const segmenter = new Intl.Segmenter()
+
 export function buildChars(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prepared: any,
   canvasWidth: number,
-  canvasHeight: number,
   ctx: CanvasRenderingContext2D
-): Char[] {
-  const result = layoutWithLines(prepared, canvasWidth, LINE_HEIGHT)
+): BuildResult {
+  const usableWidth = canvasWidth - PADDING * 2
+  const result = layoutWithLines(prepared, usableWidth, LINE_HEIGHT)
   const chars: Char[] = []
 
   ctx.font = FONT
 
-  const totalHeight = result.lines.length * LINE_HEIGHT
-  const startY = Math.round((canvasHeight - totalHeight) / 2) + LINE_HEIGHT
-
   for (let li = 0; li < result.lines.length; li++) {
     const line = result.lines[li]
-    const lineText: string = line.text
-    const lineWidth = ctx.measureText(lineText).width
-    const startX = Math.round((canvasWidth - lineWidth) / 2)
+    const lineY = PADDING + li * LINE_HEIGHT
 
-    let x = startX
-    for (const char of lineText) {
-      if (char.trim()) {
-        chars.push({ char, baseX: x, baseY: startY + li * LINE_HEIGHT })
+    let x = PADDING
+    for (const { segment } of segmenter.segment(line.text)) {
+      if (segment.trim()) {
+        chars.push({ char: segment, baseX: x, baseY: lineY })
       }
-      x += ctx.measureText(char).width
+      // ctx.measureText per grapheme is the intended pattern —
+      // pretext exposes per-segment widths but not per-grapheme for English words
+      x += ctx.measureText(segment).width
     }
   }
 
-  return chars
+  const totalHeight = PADDING + result.lines.length * LINE_HEIGHT + PADDING
+
+  return { chars, totalHeight }
 }

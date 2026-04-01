@@ -1,36 +1,47 @@
 import { useRef, useEffect, useState } from 'react'
 import { usePretext } from '../hooks/usePretext'
 import { useFluidSim } from '../hooks/useFluidSim'
-import { ambientDy } from '../simulation/ambient'
-import { rippleDy, isWaveExpired } from '../simulation/ripple'
+import { ambientOffset } from '../simulation/ambient'
+import { rippleOffset, isWaveExpired } from '../simulation/ripple'
 import { BG_COLOR, FONT, TEXT_COLOR } from '../constants'
 
 export function FluidCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [size, setSize] = useState({ width: 0, height: 0 })
+  const [width, setWidth] = useState(0)
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null)
 
-  // Init canvas and handle resize
+  // Init canvas context and track width changes
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const context = canvas.getContext('2d')
-    setCtx(context)
+    setCtx(canvas.getContext('2d'))
 
-    const onResize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      setSize({ width: window.innerWidth, height: window.innerHeight })
-    }
-
+    const onResize = () => setWidth(window.innerWidth)
     onResize()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  const chars = usePretext(size, ctx)
-  const { waves, handleClick } = useFluidSim()
+  const { chars, totalHeight } = usePretext(width, ctx)
+  const {
+    waves,
+    handleClick,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = useFluidSim()
+
+  // Sync canvas size whenever content height or width changes
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || width === 0 || totalHeight === 0) return
+    canvas.width = width
+    canvas.height = totalHeight
+  }, [width, totalHeight])
 
   // rAF render loop
   useEffect(() => {
@@ -40,7 +51,6 @@ export function FluidCanvas() {
     let rafId: number
 
     const render = (now: number) => {
-      // Prune expired waves in place
       waves.current = waves.current.filter(w => !isWaveExpired(w, now))
 
       ctx.fillStyle = BG_COLOR
@@ -49,11 +59,17 @@ export function FluidCanvas() {
       ctx.font = FONT
 
       for (const char of chars) {
-        let dy = ambientDy(char, now)
+        const ambient = ambientOffset(char, now)
+        let dx = ambient.dx
+        let dy = ambient.dy
+
         for (const wave of waves.current) {
-          dy += rippleDy(char, wave, now)
+          const r = rippleOffset(char, wave, now)
+          dx += r.dx
+          dy += r.dy
         }
-        ctx.fillText(char.char, char.baseX, char.baseY + dy)
+
+        ctx.fillText(char.char, char.baseX + dx, char.baseY + dy)
       }
 
       rafId = requestAnimationFrame(render)
@@ -67,7 +83,14 @@ export function FluidCanvas() {
     <canvas
       ref={canvasRef}
       onClick={handleClick}
-      style={{ display: 'block', cursor: 'crosshair' }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{ display: 'block', cursor: 'crosshair', touchAction: 'none' }}
     />
   )
 }
